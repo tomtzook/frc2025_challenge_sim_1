@@ -1,0 +1,87 @@
+package frc.robot.sim;
+
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import frc.robot.RobotMap;
+
+import java.util.Arrays;
+import java.util.Random;
+
+public class Sim {
+
+    private static final Sim INSTANCE = new Sim();
+
+    public static Sim getInstance() {
+        return INSTANCE;
+    }
+
+    private final AprilTagFieldLayout fieldLayout;
+    private final DifferentialDriveOdometry odometry;
+
+    private final DriveSim driveSim;
+    private final LimelightSim limelightSim;
+
+    private final NetworkTableEntry robotPoseEntry;
+    private final Double[] robotPoseArr;
+
+    public Sim() {
+        fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
+        fieldLayout.setOrigin(AprilTagFieldLayout.OriginPosition.kBlueAllianceWallRightSide);
+
+        odometry = new DifferentialDriveOdometry(Rotation2d.kZero, 0, 0, Pose2d.kZero);
+
+        driveSim = new DriveSim();
+        limelightSim = new LimelightSim(fieldLayout, RobotMap.LIMELIGHT_OFFSET_FROM_ROBOT_CENTER);
+
+        Pose3d startingRobotPosition = createRandomRobotPose();
+        odometry.resetPose(startingRobotPosition.toPose2d());
+
+        NetworkTable table = NetworkTableInstance.getDefault().getTable("Sim");
+
+        robotPoseEntry = table.getEntry("RobotPose");
+        robotPoseArr = new Double[6];
+        Arrays.fill(robotPoseArr, 0.0);
+        robotPoseEntry.setNumberArray(robotPoseArr);
+        publishRobotPose(startingRobotPosition);
+    }
+
+    public void update() {
+        DriveSim.State driveState = driveSim.update();
+        odometry.update(driveState.heading, driveState.leftDistanceMeters, driveState.rightDistanceMeters);
+
+        Pose3d robotPose = new Pose3d(odometry.getPoseMeters());
+        limelightSim.update(robotPose);
+        publishRobotPose(robotPose);
+    }
+
+    DriveSim getDriveSim() {
+        return driveSim;
+    }
+
+    private Pose3d createRandomRobotPose() {
+        Random random = new Random();
+        double randomX = random.nextDouble(fieldLayout.getFieldLength());
+        double randomY = random.nextDouble(fieldLayout.getFieldWidth());
+        double randomRot = random.nextDouble(360);
+
+        return new Pose3d(randomX, randomY, 0, new Rotation3d(0, 0, Math.toRadians(randomRot)));
+    }
+
+    private void publishRobotPose(Pose3d robotPose) {
+        robotPoseArr[0] = robotPose.getX();
+        robotPoseArr[1] = robotPose.getY();
+        robotPoseArr[2] = robotPose.getZ();
+        robotPoseArr[3] = Math.toDegrees(robotPose.getRotation().getX());
+        robotPoseArr[4] = Math.toDegrees(robotPose.getRotation().getY());
+        robotPoseArr[5] = Math.toDegrees(robotPose.getRotation().getZ());
+        robotPoseEntry.setNumberArray(robotPoseArr);
+    }
+}
