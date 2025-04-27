@@ -4,6 +4,7 @@ import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.Quaternion;
 import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.numbers.N3;
 
 public class CameraSim {
@@ -55,9 +56,29 @@ public class CameraSim {
         return true;
     }
 
+    public boolean isFacingFront(Rotation3d pointRotation, Rotation3d cameraRotation) {
+        Vector<N3> forward = VecBuilder.fill(1, 0, 0);
+
+        Vector<N3> camForward = rotateVector(forward, cameraRotation.getQuaternion());
+        Vector<N3> pointForward = rotateVector(forward, pointRotation.getQuaternion());
+
+        return angleBetween(pointForward, camForward) > Math.PI / 2;
+    }
+
     private static Vector<N3> rotateVector(Vector<N3> vec, Quaternion quaternion) {
         Quaternion p = new Quaternion(0.0, vec.get(0), vec.get(1), vec.get(2));
         Quaternion qPrime = quaternion.times(p).times(quaternion.inverse());
         return VecBuilder.fill(qPrime.getX(), qPrime.getY(), qPrime.getZ());
+    }
+
+    private static double angleBetween(Vector<N3> first, Vector<N3> second) {
+        return Math.acos(first.dot(second) / (magnitude(first) * magnitude(second)));
+    }
+
+    private static double magnitude(Vector<N3> vec) {
+        double x = vec.get(0);
+        double y = vec.get(1);
+        double z = vec.get(2);
+        return Math.sqrt(x * x + y * y + z * z);
     }
 }

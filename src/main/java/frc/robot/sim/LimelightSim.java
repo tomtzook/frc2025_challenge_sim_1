@@ -85,9 +85,10 @@ public class LimelightSim {
             translation = translation.minus(limelightPose.getTranslation()); // remove distance from cam
 
             Vector<N3> point = toVector(translation);
-            Rotation3d rotation = limelightPose.getRotation();
+            Rotation3d pointRotation = aprilTag.pose.getRotation();
+            Rotation3d camRotation = limelightPose.getRotation();
 
-            if (camera.isPointInFov(point, rotation)) {
+            if (camera.isPointInFov(point, camRotation) && camera.isFacingFront(pointRotation, camRotation)) {
                 results.add(aprilTag);
             }
         }
@@ -100,7 +101,6 @@ public class LimelightSim {
         double closestDistance = -1;
 
         for (AprilTag aprilTag : aprilTags) {
-            // todo: consider angle?
             double distanceToLl = aprilTag.pose.getTranslation().getDistance(limelightPose.getTranslation());
             if (closestDistance < 0 || closestDistance > distanceToLl) {
                 best = aprilTag;

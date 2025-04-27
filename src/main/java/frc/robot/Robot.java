@@ -7,7 +7,9 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -21,6 +23,7 @@ public class Robot extends TimedRobot {
     //      and go to a specific position in the field (maybe to an april tag?)
 
     private DriveSystem driveSystem;
+    private GenericHID controller;
 
     private AprilTagFieldLayout fieldLayout;
     private Field2d field2d = new Field2d();
@@ -31,6 +34,7 @@ public class Robot extends TimedRobot {
         Sim.getInstance(); // will initialize sim stuff
 
         driveSystem = new DriveSystem();
+        controller = new GenericHID(0);
 
         fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
         fieldLayout.setOrigin(AprilTagFieldLayout.OriginPosition.kBlueAllianceWallRightSide);
@@ -87,12 +91,20 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopInit() {
-        driveSystem.setToPosition(3);
+        //driveSystem.setToPosition(3);
     }
 
     @Override
     public void teleopPeriodic() {
         //driveSystem.set(0.2, 0.2);
+
+        double y = 0.1;//controller.getRawAxis(0);
+        double rot = 0;//controller.getRawAxis(1);
+
+        double left = y + rot;
+        double right = y - rot;
+
+        driveSystem.set(left, right);
     }
 
     @Override
