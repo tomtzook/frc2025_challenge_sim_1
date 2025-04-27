@@ -51,9 +51,12 @@ public class Robot extends TimedRobot {
             Transform3d llToTag = new Transform3d(arr[0].doubleValue(), arr[1].doubleValue(), arr[2].doubleValue(), new Rotation3d(arr[3].doubleValue(), arr[4].doubleValue(), arr[5].doubleValue()));
 
             Pose3d aprilTagPose = fieldLayout.getTagPose(id).orElseThrow();
-            Pose3d robotPose = aprilTagPose.plus(llToTag.inverse()).plus(RobotMap.LIMELIGHT_OFFSET_FROM_ROBOT_CENTER.inverse());
+            Pose3d llPose = aprilTagPose.plus(llToTag.inverse());
+            Pose3d robotPose = llPose.plus(RobotMap.LIMELIGHT_OFFSET_FROM_ROBOT_CENTER.inverse());
 
             field2d.setRobotPose(robotPose.toPose2d());
+            field2d.getObject("apriltag").setPose(aprilTagPose.toPose2d());
+            field2d.getObject("ll").setPose(llPose.toPose2d());
         }
     }
 

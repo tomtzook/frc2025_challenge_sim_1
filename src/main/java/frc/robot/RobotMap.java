@@ -15,7 +15,10 @@ public class RobotMap {
 
     // limelight
     public static final String LIMELIGHT_NAME = "limelight";
-    public static final Transform3d LIMELIGHT_OFFSET_FROM_ROBOT_CENTER = new Transform3d(0, 0, 0, Rotation3d.kZero);
+    public static final Transform3d LIMELIGHT_OFFSET_FROM_ROBOT_CENTER = new Transform3d(0.1, 0, 0.8, new Rotation3d(0, 0, Math.PI / 4));
+    public static final String LIMELIGHT_ENTRY_HAS_TARGET = "tv";
+    public static final String LIMELIGHT_ENTRY_TARGET_ID = "tid";
+    public static final String LIMELIGHT_ENTRY_TARGET_POSE = "targetpose_camspace";
 
     // drive
     public static final int DRIVE_FRONT_RIGHT = 1;

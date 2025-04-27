@@ -1,46 +1,46 @@
 package frc.robot.sim;
 
+import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.math.MatBuilder;
-import edu.wpi.first.math.Matrix;
-import edu.wpi.first.math.Nat;
-import edu.wpi.first.math.StateSpaceUtil;
+import edu.wpi.first.math.*;
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.numbers.N6;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.robot.RobotMap;
 
-import java.util.Arrays;
-import java.util.Optional;
-import java.util.OptionalInt;
+import java.util.*;
 
 public class LimelightSim {
 
     private final AprilTagFieldLayout fieldLayout;
     private final Transform3d limelightPoseInRobot;
+    private final CameraSim camera;
 
-    private final NetworkTableEntry hasTargetEntry;
-    private final NetworkTableEntry targetIdEntry;
-    private final NetworkTableEntry targetPoseCamSpaceEntry;
+    private final NetworkTableEntry hasTargetEntryTarget;
+    private final NetworkTableEntry targetIdEntryTarget;
+    private final NetworkTableEntry targetPoseCamSpaceEntryTarget;
     private final Double[] targetPoseCamSpaceArr;
 
     public LimelightSim(AprilTagFieldLayout fieldLayout, Transform3d limelightPoseInRobot) {
         this.fieldLayout = fieldLayout;
         this.limelightPoseInRobot = limelightPoseInRobot;
+        this.camera = new CameraSim(20, 20, 10); // todo: check for good values
 
-        NetworkTable table = NetworkTableInstance.getDefault().getTable(RobotMap.LIMELIGHT_NAME);
-        hasTargetEntry = table.getEntry("tv");
-        targetIdEntry = table.getEntry("tid");
-        targetPoseCamSpaceEntry = table.getEntry("targetpose_camspace");
+        NetworkTable targetDataTable = NetworkTableInstance.getDefault().getTable(RobotMap.LIMELIGHT_NAME);
+        hasTargetEntryTarget = targetDataTable.getEntry(RobotMap.LIMELIGHT_ENTRY_HAS_TARGET);
+        targetIdEntryTarget = targetDataTable.getEntry(RobotMap.LIMELIGHT_ENTRY_TARGET_ID);
+        targetPoseCamSpaceEntryTarget = targetDataTable.getEntry(RobotMap.LIMELIGHT_ENTRY_TARGET_POSE);
 
-        hasTargetEntry.setBoolean(false);
-        targetIdEntry.setNumber(-1);
+        hasTargetEntryTarget.setBoolean(false);
+        targetIdEntryTarget.setNumber(-1);
         targetPoseCamSpaceArr = new Double[6];
         Arrays.fill(targetPoseCamSpaceArr, 0.0);
-        targetPoseCamSpaceEntry.setNumberArray(targetPoseCamSpaceArr);
+        targetPoseCamSpaceEntryTarget.setNumberArray(targetPoseCamSpaceArr);
     }
 
     public void update(Pose3d robotPose) {
@@ -63,8 +63,52 @@ public class LimelightSim {
     }
 
     private OptionalInt findSeenAprilTag(Pose3d robotPose) {
-        // todo: implement
-        return OptionalInt.of(5);
+        Pose3d llPose = robotPose.plus(limelightPoseInRobot);
+        List<AprilTag> visibleTags = getAllVisibleTags(fieldLayout.getTags(), llPose);
+        if (visibleTags.isEmpty()) {
+            return OptionalInt.empty();
+        }
+
+        AprilTag aprilTag = findBestTag(visibleTags, llPose);
+        if (aprilTag == null) {
+            return OptionalInt.empty();
+        }
+
+        return OptionalInt.of(aprilTag.ID);
+    }
+
+    private List<AprilTag> getAllVisibleTags(List<AprilTag> tags, Pose3d limelightPose) {
+        List<AprilTag> results = new ArrayList<>();
+
+        for (AprilTag aprilTag : tags) {
+            Translation3d translation = aprilTag.pose.getTranslation();
+            translation = translation.minus(limelightPose.getTranslation()); // remove distance from cam
+
+            Vector<N3> point = toVector(translation);
+            Rotation3d rotation = limelightPose.getRotation();
+
+            if (camera.isPointInFov(point, rotation)) {
+                results.add(aprilTag);
+            }
+        }
+
+        return results;
+    }
+
+    private AprilTag findBestTag(List<AprilTag> aprilTags, Pose3d limelightPose) {
+        AprilTag best = null;
+        double closestDistance = -1;
+
+        for (AprilTag aprilTag : aprilTags) {
+            // todo: consider angle?
+            double distanceToLl = aprilTag.pose.getTranslation().getDistance(limelightPose.getTranslation());
+            if (closestDistance < 0 || closestDistance > distanceToLl) {
+                best = aprilTag;
+                closestDistance = distanceToLl;
+            }
+        }
+
+        return best;
     }
 
     private Pose3d calculateTargetPose(Pose3d robotPose, Pose3d aprilTagPose) {
@@ -89,12 +133,12 @@ public class LimelightSim {
     }
 
     private void publishNoData() {
-        hasTargetEntry.setBoolean(false);
+        hasTargetEntryTarget.setBoolean(false);
     }
 
     private void publishNewData(int targetId, Pose3d targetPoseCamSpace) {
-        hasTargetEntry.setBoolean(true);
-        targetIdEntry.setNumber(targetId);
+        hasTargetEntryTarget.setBoolean(true);
+        targetIdEntryTarget.setNumber(targetId);
 
         targetPoseCamSpaceArr[0] = targetPoseCamSpace.getX();
         targetPoseCamSpaceArr[1] = targetPoseCamSpace.getY();
@@ -102,6 +146,10 @@ public class LimelightSim {
         targetPoseCamSpaceArr[3] = targetPoseCamSpace.getRotation().getX();
         targetPoseCamSpaceArr[4] = targetPoseCamSpace.getRotation().getY();
         targetPoseCamSpaceArr[5] = targetPoseCamSpace.getRotation().getZ();
-        targetPoseCamSpaceEntry.setNumberArray(targetPoseCamSpaceArr);
+        targetPoseCamSpaceEntryTarget.setNumberArray(targetPoseCamSpaceArr);
+    }
+
+    private static Vector<N3> toVector(Translation3d translation) {
+        return VecBuilder.fill(translation.getX(), translation.getY(), translation.getZ());
     }
 }

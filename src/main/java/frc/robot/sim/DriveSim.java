@@ -7,6 +7,8 @@ import edu.wpi.first.math.Nat;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.units.Units;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularVelocity;
@@ -31,11 +33,27 @@ public class DriveSim {
         }
     }
 
+    private final NetworkTableEntry leftOutEntry;
+    private final NetworkTableEntry rightOutEntry;
+    private final NetworkTableEntry leftPosEntry;
+    private final NetworkTableEntry leftVelEntry;
+    private final NetworkTableEntry rightPosEntry;
+    private final NetworkTableEntry rightVelEntry;
+    private final NetworkTableEntry headingEntry;
+
     private final DifferentialDrivetrainSim sim;
 
     private Hardware hardware;
 
-    public DriveSim() {
+    public DriveSim(NetworkTable table) {
+        leftOutEntry = table.getEntry("LeftOutVolts");
+        rightOutEntry = table.getEntry("RightOutVolts");
+        leftPosEntry = table.getEntry("LeftPositionM");
+        leftVelEntry = table.getEntry("LeftVelocityMps");
+        rightPosEntry = table.getEntry("RightPositionM");
+        rightVelEntry = table.getEntry("RightVelocityMps");
+        headingEntry = table.getEntry("HeadingDeg");
+
         sim = new DifferentialDrivetrainSim(
             DCMotor.getFalcon500(RobotMap.DRIVE_SIDE_MOTOR_COUNT),
             RobotMap.DRIVE_MOTOR_TO_WHEEL_GEAR_RATIO,
@@ -67,6 +85,9 @@ public class DriveSim {
         double rightOutput = outputs.getSecond();
         sim.setInputs(leftOutput, rightOutput);
 
+        leftOutEntry.setNumber(leftOutput);
+        rightOutEntry.setNumber(rightOutput);
+
         sim.update(0.02);
 
         Angle leftPosition = positionMetersToRotorPosition(sim.getLeftPositionMeters());
@@ -74,6 +95,12 @@ public class DriveSim {
         Angle rightPosition = positionMetersToRotorPosition(sim.getRightPositionMeters());
         AngularVelocity rightVelocity = velocityMpsToRotorVelocity(sim.getRightVelocityMetersPerSecond());
         hardware.updateState(leftPosition, leftVelocity, rightPosition, rightVelocity, sim.getHeading());
+
+        leftPosEntry.setNumber(sim.getLeftPositionMeters());
+        leftVelEntry.setNumber(sim.getLeftVelocityMetersPerSecond());
+        rightPosEntry.setNumber(sim.getRightPositionMeters());
+        rightVelEntry.setNumber(sim.getRightVelocityMetersPerSecond());
+        headingEntry.setNumber(sim.getHeading().getDegrees());
 
         return new State(sim.getHeading(), sim.getLeftPositionMeters(), sim.getRightPositionMeters());
     }

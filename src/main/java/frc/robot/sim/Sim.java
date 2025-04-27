@@ -2,10 +2,7 @@ package frc.robot.sim;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.*;
 import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
@@ -33,18 +30,19 @@ public class Sim {
     private final Double[] robotPoseArr;
 
     public Sim() {
+        NetworkTable table = NetworkTableInstance.getDefault().getTable("Sim");
+
         fieldLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025Reefscape);
         fieldLayout.setOrigin(AprilTagFieldLayout.OriginPosition.kBlueAllianceWallRightSide);
 
         odometry = new DifferentialDriveOdometry(Rotation2d.kZero, 0, 0, Pose2d.kZero);
 
-        driveSim = new DriveSim();
+        driveSim = new DriveSim(table.getSubTable("DriveSim"));
         limelightSim = new LimelightSim(fieldLayout, RobotMap.LIMELIGHT_OFFSET_FROM_ROBOT_CENTER);
 
-        Pose3d startingRobotPosition = createRandomRobotPose();
+        //Pose3d startingRobotPosition = createRandomRobotPose();
+        Pose3d startingRobotPosition = createFixedRobotPose(8, new Transform3d(2, 0, 0, new Rotation3d(0, 0, Math.PI)));
         odometry.resetPose(startingRobotPosition.toPose2d());
-
-        NetworkTable table = NetworkTableInstance.getDefault().getTable("Sim");
 
         robotPoseEntry = table.getEntry("RobotPose");
         robotPoseArr = new Double[6];
@@ -73,6 +71,11 @@ public class Sim {
         double randomRot = random.nextDouble(360);
 
         return new Pose3d(randomX, randomY, 0, new Rotation3d(0, 0, Math.toRadians(randomRot)));
+    }
+
+    private Pose3d createFixedRobotPose(int referenceAprilTagId, Transform3d transformFromTag) {
+        Pose3d aprilTag = fieldLayout.getTagPose(referenceAprilTagId).orElseThrow();
+        return aprilTag.plus(transformFromTag).plus(RobotMap.LIMELIGHT_OFFSET_FROM_ROBOT_CENTER.inverse());
     }
 
     private void publishRobotPose(Pose3d robotPose) {
