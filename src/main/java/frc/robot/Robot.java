@@ -9,7 +9,6 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.TimedRobot;
-import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -91,7 +90,7 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopInit() {
-        //driveSystem.setToPosition(3);
+        driveSystem.setToPosition(3);
     }
 
     @Override
@@ -104,7 +103,7 @@ public class Robot extends TimedRobot {
         double left = y + rot;
         double right = y - rot;
 
-        driveSystem.set(left, right);
+        //driveSystem.set(left, right);
     }
 
     @Override

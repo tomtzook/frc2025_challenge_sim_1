@@ -44,6 +44,7 @@ public class DriveSystem extends SubsystemBase {
     //      work: dont divide task too much, let talya come up with it together we me on zoom, to practice breaking up tasks
     //              do task analysis together.
     //              most doc should be on how things work and what is required
+    //      note: when docing ex, make sure to explain how to show poses on field
 
     public DriveSystem() {
         frontLeft = new TalonFX(RobotMap.DRIVE_FRONT_LEFT);
@@ -126,7 +127,7 @@ public class DriveSystem extends SubsystemBase {
         frontLeft.setControl(positionDutyCycleL);
         backLeft.setControl(new Follower(frontLeft.getDeviceID(), false));
         frontRight.setControl(new Follower(frontLeft.getDeviceID(), true));
-        backRight.setControl(new Follower(frontLeft.getDeviceID(), true));
+        backRight.setControl(new Follower(frontRight.getDeviceID(), false));
     }
 
     @Override
