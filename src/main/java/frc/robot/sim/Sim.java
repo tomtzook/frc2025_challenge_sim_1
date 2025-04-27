@@ -7,10 +7,14 @@ import edu.wpi.first.math.kinematics.DifferentialDriveOdometry;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.RobotMap;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 public class Sim {
 
@@ -29,6 +33,8 @@ public class Sim {
     private final NetworkTableEntry robotPoseEntry;
     private final Double[] robotPoseArr;
 
+    private final Field2d simDebugField;
+
     public Sim() {
         NetworkTable table = NetworkTableInstance.getDefault().getTable("Sim");
 
@@ -37,8 +43,8 @@ public class Sim {
 
         odometry = new DifferentialDriveOdometry(Rotation2d.kZero, 0, 0, Pose2d.kZero);
 
-        driveSim = new DriveSim(table.getSubTable("DriveSim"));
-        limelightSim = new LimelightSim(fieldLayout, RobotMap.LIMELIGHT_OFFSET_FROM_ROBOT_CENTER);
+        driveSim = new DriveSim(table.getSubTable("Drive"));
+        limelightSim = new LimelightSim(fieldLayout, RobotMap.LIMELIGHT_OFFSET_FROM_ROBOT_CENTER, table.getSubTable("Limelight"));
 
         //Pose3d startingRobotPosition = createRandomRobotPose();
         Pose3d startingRobotPosition = createFixedRobotPose(8, new Transform3d(2, 0, 0, new Rotation3d(0, 0, Math.PI)));
@@ -49,6 +55,9 @@ public class Sim {
         Arrays.fill(robotPoseArr, 0.0);
         robotPoseEntry.setNumberArray(robotPoseArr);
         publishRobotPose(startingRobotPosition);
+
+        simDebugField = new Field2d();
+        SmartDashboard.putData("SimDebugField", simDebugField);
     }
 
     public void update() {
@@ -56,7 +65,23 @@ public class Sim {
         odometry.update(driveState.heading, driveState.leftDistanceMeters, driveState.rightDistanceMeters);
 
         Pose3d robotPose = new Pose3d(odometry.getPoseMeters());
-        limelightSim.update(robotPose);
+        LimelightSim.State limelightState = limelightSim.update(robotPose);
+
+        simDebugField.setRobotPose(robotPose.toPose2d());
+        List<Pose2d> seenAprilTagPoses = limelightState.seenAprilTags.stream()
+                .map((ap -> ap.pose.toPose2d()))
+                .collect(Collectors.toList());
+        simDebugField.getObject("AprilTags").setPoses(seenAprilTagPoses);
+
+        if (limelightState.selectedAprilTagId >= 0) {
+            Pose2d pose = fieldLayout.getTagPose(limelightState.selectedAprilTagId).orElseThrow().toPose2d();
+            simDebugField.getObject("SeenAprilTag").setPose(pose);
+        } else {
+            simDebugField.getObject("SeenAprilTag").setPoses();
+        }
+
+        simDebugField.getObject("Limelight").setPose(limelightState.limelightPose.toPose2d());
+
         publishRobotPose(robotPose);
     }
 

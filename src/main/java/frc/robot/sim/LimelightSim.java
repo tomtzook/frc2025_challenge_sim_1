@@ -14,22 +14,42 @@ import edu.wpi.first.networktables.NetworkTableInstance;
 import frc.robot.RobotMap;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class LimelightSim {
+
+    public static class State {
+        public final int selectedAprilTagId;
+        public final List<AprilTag> seenAprilTags;
+        public final Pose3d limelightPose;
+
+        public State(int selectedAprilTagId, List<AprilTag> seenAprilTags, Pose3d limelightPose) {
+            this.selectedAprilTagId = selectedAprilTagId;
+            this.seenAprilTags = seenAprilTags;
+            this.limelightPose = limelightPose;
+        }
+    }
+
+    private static final Number[] EMPTY_NUMBER_ARRAY = new Number[0];
 
     private final AprilTagFieldLayout fieldLayout;
     private final Transform3d limelightPoseInRobot;
     private final CameraSim camera;
+
+    private final NetworkTableEntry seenAprilTagIdsEntryData;
 
     private final NetworkTableEntry hasTargetEntryTarget;
     private final NetworkTableEntry targetIdEntryTarget;
     private final NetworkTableEntry targetPoseCamSpaceEntryTarget;
     private final Double[] targetPoseCamSpaceArr;
 
-    public LimelightSim(AprilTagFieldLayout fieldLayout, Transform3d limelightPoseInRobot) {
+    public LimelightSim(AprilTagFieldLayout fieldLayout, Transform3d limelightPoseInRobot, NetworkTable dataTable) {
         this.fieldLayout = fieldLayout;
         this.limelightPoseInRobot = limelightPoseInRobot;
         this.camera = new CameraSim(20, 20, 10); // todo: check for good values
+
+        seenAprilTagIdsEntryData = dataTable.getEntry("SeenAprilTags");
+        seenAprilTagIdsEntryData.setNumberArray(EMPTY_NUMBER_ARRAY);
 
         NetworkTable targetDataTable = NetworkTableInstance.getDefault().getTable(RobotMap.LIMELIGHT_NAME);
         hasTargetEntryTarget = targetDataTable.getEntry(RobotMap.LIMELIGHT_ENTRY_HAS_TARGET);
@@ -43,8 +63,11 @@ public class LimelightSim {
         targetPoseCamSpaceEntryTarget.setNumberArray(targetPoseCamSpaceArr);
     }
 
-    public void update(Pose3d robotPose) {
-        OptionalInt seenTag = findSeenAprilTag(robotPose);
+    public State update(Pose3d robotPose) {
+        Pair<OptionalInt, List<AprilTag>> tagInfo = findSeenAprilTag(robotPose);
+        publishAprilTagInfo(tagInfo.getSecond());
+
+        OptionalInt seenTag = tagInfo.getFirst();
         if (seenTag.isEmpty()) {
             publishNoData();
         } else {
@@ -60,21 +83,24 @@ public class LimelightSim {
             Pose3d targetPoseCamSpace = calculateTargetPose(robotPose, aprilTagPose);
             publishNewData(tagId, targetPoseCamSpace);
         }
+
+        Pose3d llPose = robotPose.plus(limelightPoseInRobot);
+        return new State(seenTag.orElse(-1), Collections.unmodifiableList(tagInfo.getSecond()), llPose);
     }
 
-    private OptionalInt findSeenAprilTag(Pose3d robotPose) {
+    private Pair<OptionalInt, List<AprilTag>> findSeenAprilTag(Pose3d robotPose) {
         Pose3d llPose = robotPose.plus(limelightPoseInRobot);
         List<AprilTag> visibleTags = getAllVisibleTags(fieldLayout.getTags(), llPose);
         if (visibleTags.isEmpty()) {
-            return OptionalInt.empty();
+            return Pair.of(OptionalInt.empty(), visibleTags);
         }
 
         AprilTag aprilTag = findBestTag(visibleTags, llPose);
         if (aprilTag == null) {
-            return OptionalInt.empty();
+            return Pair.of(OptionalInt.empty(), visibleTags);
         }
 
-        return OptionalInt.of(aprilTag.ID);
+        return Pair.of(OptionalInt.of(aprilTag.ID), visibleTags);
     }
 
     private List<AprilTag> getAllVisibleTags(List<AprilTag> tags, Pose3d limelightPose) {
@@ -147,6 +173,14 @@ public class LimelightSim {
         targetPoseCamSpaceArr[4] = targetPoseCamSpace.getRotation().getY();
         targetPoseCamSpaceArr[5] = targetPoseCamSpace.getRotation().getZ();
         targetPoseCamSpaceEntryTarget.setNumberArray(targetPoseCamSpaceArr);
+    }
+
+    private void publishAprilTagInfo(List<AprilTag> seenAprilTags) {
+        Number[] idsArr = seenAprilTags.stream()
+                .map((ap)-> ap.ID)
+                .collect(Collectors.toList())
+                .toArray(EMPTY_NUMBER_ARRAY);
+        seenAprilTagIdsEntryData.setNumberArray(idsArr);
     }
 
     private static Vector<N3> toVector(Translation3d translation) {
