@@ -38,9 +38,8 @@ In order to complete the challenge, you will be required to implement this syste
 If you do not recall how to use some of the devices, see the following snippets
 - [TalonFX Encoder](https://github.com/tomtzook/frc-learn-docs/blob/master/robot-code-snippets.md#encoder-access-talon-fx-integrated-encoder)
 - [TalonFX Basic Control](https://github.com/tomtzook/frc-learn-docs/blob/master/robot-code-snippets.md#motor-basic-control-talon-fx)
+- [TalonFX Position Closed-Loop](https://github.com/tomtzook/frc-learn-docs/blob/master/robot-code-snippets.md#motor-position-closed-loop-control-talon-fx)
 - [Pigeon2 Yaw](https://github.com/tomtzook/frc-learn-docs/blob/master/robot-code-snippets.md#gyro-access-pigeon-2-yaw)
-
-TODO: TALON FX POSITION LOOP
 
 Implement the drive system in whatever manner you wish, with whatever methods and commands you need to complete the challenge. 
 You may want to test the system code before trying to complete the actual challenge.  
