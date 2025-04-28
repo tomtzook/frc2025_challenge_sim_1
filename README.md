@@ -3,8 +3,7 @@
 ## Challenge 
 
 In this challenge, your robot gets dropped onto the field at a random location. The location changes every time you run the simulation,
-and your code does not have access to information on where it is dropped. In fact, the robot thinks it is at the 0 position of the 
-field. 
+and your code does not have access to information on where it is dropped. In fact, the robot thinks it is at the 0 position of the field. 
 
 You have to program the robot to
 1. Find out its actual position on the field.
@@ -139,9 +138,9 @@ Transform3d transform = new Transform3d(
 In FRC, we use 2D and 3D coordinates to describe positions on the field. 
 
 The typical coordinate system has the _X_ axis going from one alliance station to the next, and _Y_ going from one side to the other, while
-_Z_ goes up and down. The origin point of the coordinate system is the right side of the blue alliance wall.
+_Z_ goes up and down. The origin point (`0, 0`) of the coordinate system is the right side of the blue alliance wall.
 
-TODO ADD FIELD IMAGE
+![image](https://github.com/user-attachments/assets/9e40c9cc-16d1-4f02-830a-e75ec4029678)
 
 WPILib provides several class that can be used for representing and manipulating 2D and 3D data, which may be of use
 for this challenge.
@@ -310,7 +309,7 @@ To use a run configuration, select it from the configurations drop down box and 
 
 Select the `Simulate` run configuration and click on _run_. This will build and run the code in the simulator.
 
-![image](https://github.com/user-attachments/assets/c6d534f5-fd32-4ad9-a6ab-7feff2d39753)
+![image](https://github.com/user-attachments/assets/7addbd94-41ae-4f8b-9821-8bb94bbcbb39)
 
 You may also run the simulation in debug mode and use the debugger by pressing the _Bug_ button next to _Run_.
 
@@ -319,7 +318,7 @@ You may also run the simulation in debug mode and use the debugger by pressing t
 In order to see if your code is correct, you may consult some information provided by the simulation
 to the simulation GUI.
 
-TODO INSERT SOME IMAGE
+![image](https://github.com/user-attachments/assets/310169fa-2f13-4ca0-a2b0-ea3e4266afe2)
 
 There are two sets of information provided by the simulation to the GUI
 - In the network tables view, you may find the table `Sim`. This table contains a few sub-tables and entries
