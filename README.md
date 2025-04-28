@@ -136,7 +136,55 @@ Transform3d transform = new Transform3d(
 
 #### Field Coordinates
 
-TODO
+In FRC, we use 2D and 3D coordinates to describe positions on the field. 
+
+The typical coordinate system has the _X_ axis going from one alliance station to the next, and _Y_ going from one side to the other, while
+_Z_ goes up and down. The origin point of the coordinate system is the right side of the blue alliance wall.
+
+TODO ADD FIELD IMAGE
+
+WPILib provides several class that can be used for representing and manipulating 2D and 3D data, which may be of use
+for this challenge.
+
+The translation classes (`Translation2d`, `Translation3d`) represent position in 2D/3D space. For 2D this means X,Y coordinates,
+while for 3D this means X,Y,Z coordinates. The measurement unit is what we choose, but it is typical to use it with meters.
+
+The rotation classes (`Rotation2d`, `Rotation3d`) represent rotation in 2D/3D space. For 2D this means YAW angle,
+while for 3D this means ROLL,PITCH,YAW angles. The measurement unit is radians.
+
+The transform classes (`Transform2d`, `Transform3d`) represent a change in position/rotation of an object. We typically use
+them in calculations involving changes in position and rotation. These classes basically
+contain instances of both translation and rotation classes.
+
+The pose classes (`Pose2d`, `Pose3d`) represents both the position and rotation of an object. We typically use 
+them to represent robot position/rotation or field item position/rotation (e.g. April Tag). These classes basically
+contain instances of both translation and rotation classes.
+
+Some example on using the classes:
+```java
+// pose2 = pose1 (x1, y1, z1, roll1, pitch1, yaw1) + delta pose (transform)
+Pose3d pose1 = new Pose3d(x1, y1, z1, new Rotation3d(roll1, pitch1, yaw1));
+Transform3d transform = new Transform3d(dx, dy, dz, new Rotation3d(droll, dpitch, dyaw));
+Pose3d pose2 = pose1.plus(transform);
+```
+```java
+// pose2 = pose1 (x1, y1, z1, roll1, pitch1, yaw1) - delta pose (transform)
+Pose3d pose1 = new Pose3d(x1, y1, z1, new Rotation3d(roll1, pitch1, yaw1));
+Transform3d transform = new Transform3d(dx, dy, dz, new Rotation3d(droll, dpitch, dyaw));
+Pose3d pose2 = pose1.plus(transform.inverse());
+```
+```java
+// delta = pose2 - pose1 -> difference between two poses
+Pose3d pose1 = new Pose3d(x1, y1, z1, new Rotation3d(roll1, pitch1, yaw1));
+Pose3d pose2 = new Pose3d(x2, y2, z2, new Rotation3d(roll2, pitch2, yaw2));
+Transform3d transform = pose2.minus(pose1);
+```
+```java
+// 2d -> 3d, 3d -> 2d
+Pose2d pose1 = new Pose2d(x1, y1, new Rotation2d(yaw1));
+Pose3d pose2 = new Pose3d(pose1); // Z, Pitch,Roll are 0
+Pose2d pose3 = pose2.toPose2d();
+```
 
 #### April Tag Layout
 

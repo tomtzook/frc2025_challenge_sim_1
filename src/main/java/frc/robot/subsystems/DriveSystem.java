@@ -47,92 +47,12 @@ public class DriveSystem extends SubsystemBase {
     //      note: when docing ex, make sure to explain how to show poses on field
 
     public DriveSystem() {
-        frontLeft = new TalonFX(RobotMap.DRIVE_FRONT_LEFT);
-        backLeft = new TalonFX(RobotMap.DRIVE_BACK_LEFT);
-        frontRight = new TalonFX(RobotMap.DRIVE_FRONT_RIGHT);
-        backRight = new TalonFX(RobotMap.DRIVE_BACK_RIGHT);
-        pigeon = new Pigeon2(RobotMap.DRIVE_PIGEON);
-
-        TalonFXConfiguration configuration = new TalonFXConfiguration();
-        configuration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-        configuration.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RotorSensor;
-        configuration.Feedback.SensorToMechanismRatio = RobotMap.DRIVE_MOTOR_TO_WHEEL_GEAR_RATIO;
-        configuration.Slot0.kP = 0.1;
-        frontLeft.getConfigurator().apply(configuration);
-        configuration = new TalonFXConfiguration();
-        configuration.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
-        configuration.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RotorSensor;
-        configuration.Feedback.SensorToMechanismRatio = RobotMap.DRIVE_MOTOR_TO_WHEEL_GEAR_RATIO;
-        configuration.Slot0.kP = 0.1;
-        backLeft.getConfigurator().apply(configuration);
-        configuration = new TalonFXConfiguration();
-        configuration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-        configuration.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RotorSensor;
-        configuration.Feedback.SensorToMechanismRatio = RobotMap.DRIVE_MOTOR_TO_WHEEL_GEAR_RATIO;
-        configuration.Slot0.kP = 0.1;
-        frontRight.getConfigurator().apply(configuration);
-        configuration = new TalonFXConfiguration();
-        configuration.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
-        configuration.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.RotorSensor;
-        configuration.Feedback.SensorToMechanismRatio = RobotMap.DRIVE_MOTOR_TO_WHEEL_GEAR_RATIO;
-        configuration.Slot0.kP = 0.1;
-        backRight.getConfigurator().apply(configuration);
-
-        Pigeon2Configuration pigeonConfiguration = new Pigeon2Configuration();
-        pigeon.getConfigurator().apply(pigeonConfiguration);
-
-        odometry = new DifferentialDriveOdometry(getHeading(), getLeftDistancePassed(), getRightDistancePassed(), Pose2d.kZero);
-        field = new Field2d();
-        SmartDashboard.putData("Field", field);
-
-        SimSystems.registerDrive(frontLeft, backLeft, frontRight, backRight, pigeon);
-    }
-
-    public Rotation2d getHeading() {
-        return pigeon.getRotation2d();
-    }
-
-    public double getLeftDistancePassed() {
-        double rotationsWheel = frontLeft.getPosition(true).getValue().in(Units.Rotations);
-        return rotationsWheel * RobotMap.DRIVE_WHEEL_CIRCUMFERENCE_M;
-    }
-
-    public double getRightDistancePassed() {
-        double rotationsWheel = frontRight.getPosition(true).getValue().in(Units.Rotations);
-        return rotationsWheel * RobotMap.DRIVE_WHEEL_CIRCUMFERENCE_M;
-    }
-
-    public void set(double left, double right) {
-        dutyCycleOutL.Output = left;
-        frontLeft.setControl(dutyCycleOutL);
-        backLeft.setControl(dutyCycleOutL);
-
-        dutyCycleOutR.Output = right;
-        frontRight.setControl(dutyCycleOutR);
-        backRight.setControl(dutyCycleOutR);
-    }
-
-    public void stop() {
-        frontLeft.setControl(neutralOut);
-        backLeft.setControl(neutralOut);
-        frontRight.setControl(neutralOut);
-        backRight.setControl(neutralOut);
-    }
-
-    public void setToPosition(double positionMeters) {
-        double positionRotations = positionMeters / RobotMap.DRIVE_WHEEL_CIRCUMFERENCE_M;
-        PositionDutyCycle positionDutyCycleL = new PositionDutyCycle(0);
-        positionDutyCycleL.Position = positionRotations;
-
-        frontLeft.setControl(positionDutyCycleL);
-        backLeft.setControl(new Follower(frontLeft.getDeviceID(), false));
-        frontRight.setControl(new Follower(frontLeft.getDeviceID(), true));
-        backRight.setControl(new Follower(frontRight.getDeviceID(), false));
+        // TODO: UNCOMMENT
+        // SimSystems.registerDrive(frontLeft, backLeft, frontRight, backRight, pigeon);
     }
 
     @Override
     public void periodic() {
-        odometry.update(getHeading(), getLeftDistancePassed(), getRightDistancePassed());
-        field.setRobotPose(odometry.getPoseMeters());
+
     }
 }

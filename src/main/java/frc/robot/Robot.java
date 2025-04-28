@@ -90,25 +90,17 @@ public class Robot extends TimedRobot {
 
     @Override
     public void teleopInit() {
-        driveSystem.setToPosition(3);
+
     }
 
     @Override
     public void teleopPeriodic() {
-        //driveSystem.set(0.2, 0.2);
 
-        double y = 0.1;//controller.getRawAxis(0);
-        double rot = 0;//controller.getRawAxis(1);
-
-        double left = y + rot;
-        double right = y - rot;
-
-        //driveSystem.set(left, right);
     }
 
     @Override
     public void teleopExit() {
-        driveSystem.stop();
+
     }
 
     @Override
