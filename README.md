@@ -11,6 +11,7 @@ You have to program the robot to
 
 To find the location of the robot in the field, we will be using a simulated Limelight which can see April Tags.
 The limelight will report the position of an April Tag to the robot, using which, the robot code can calculate its position.
+Note that the limelight may not see an April Tag at the moment of start, as it has a randomized position. In such a case, your code will need to actively search for an April Tag.
 
 Once the robot's location is discovered, it can then be moved to the wanted position on the field. Do not use PathPlanner, make your own algorithm. You may use PID, or not, the choice is yours. 
 
