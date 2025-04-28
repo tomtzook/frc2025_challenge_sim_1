@@ -12,8 +12,13 @@ You have to program the robot to
 To find the location of the robot in the field, we will be using a simulated Limelight which can see April Tags.
 The limelight will report the position of an April Tag to the robot, using which, the robot code can calculate its position.
 
-Once the robot's location is discovered, it can then be moved to the wanted position on the field. Do not use PathPlanner,
-make your own algorithm. You may use PID, or not, the choice is yours.
+Once the robot's location is discovered, it can then be moved to the wanted position on the field. Do not use PathPlanner, make your own algorithm. You may use PID, or not, the choice is yours. 
+
+The desired destination is to stand in front (max distance of 30cm from robot edge) of April Tag 12. 
+- It is not required to be perfectly perpendicular to the April Tag
+- The robot should be oriented to the April Tag
+- Bonus points for code that can reach any April Tag
+- Read below on obstacles in the Field
 
 ## Robot
 
@@ -207,6 +212,9 @@ public void robotPeriodic() {
     Pose3d aprilTagPose = fieldLayout.getTagPose(5).orElseThrow();
 }
 ```
+
+The following shows positions of april tags on the field
+![image](https://github.com/user-attachments/assets/6d331cf8-b144-40b6-9c03-283ea339a7ba)
 
 ## Simulation
 
