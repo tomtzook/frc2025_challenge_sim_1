@@ -55,12 +55,18 @@ public class MotorsContainer {
         MotorSim.Output output = motorSim.updateOutput(busVoltage);
 
         double volts;
-        if (output.type == MotorSim.OutputType.Follow) {
-            Set<Integer> visitedMotors = new HashSet<>(); // circular referencing protection
-            visitedMotors.add(motorSim.getId());
-            volts = evaluateMaster(output, busVoltage, outputs, visitedMotors);
-        } else {
-            volts = output.voltage;
+        switch (output.type) {
+            case Follow: {
+                Set<Integer> visitedMotors = new HashSet<>(); // circular referencing protection
+                visitedMotors.add(motorSim.getId());
+                volts = evaluateMaster(output, busVoltage, outputs, visitedMotors);
+                break;
+            }
+            case Voltage:
+                volts = output.voltage;
+                break;
+            default:
+                throw new AssertionError(String.format("unknown output type: %s", output.type));
         }
 
         outputs.put(motorSim.getId(), volts);
@@ -76,12 +82,18 @@ public class MotorsContainer {
             MotorSim.Output outputMaster = master.updateOutput(busVoltage);
 
             double volts;
-            if (outputMaster.type == MotorSim.OutputType.Follow) {
-                // recursion sucks, but it is the easiest solution here
-                visitedMotors.add(output.followerId);
-                volts = evaluateMaster(outputMaster, busVoltage, outputs, visitedMotors);
-            } else {
-                volts = outputMaster.voltage;
+            switch (output.type) {
+                case Follow: {
+                    // recursion sucks, but it is the easiest solution here
+                    visitedMotors.add(output.followerId);
+                    volts = evaluateMaster(outputMaster, busVoltage, outputs, visitedMotors);
+                    break;
+                }
+                case Voltage:
+                    volts = outputMaster.voltage;
+                    break;
+                default:
+                    throw new AssertionError(String.format("unknown output type: %s", output.type));
             }
 
             outputs.put(output.followerId, volts);

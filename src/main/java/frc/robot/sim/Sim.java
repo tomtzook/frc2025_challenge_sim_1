@@ -46,8 +46,7 @@ public class Sim {
         driveSim = new DriveSim(table.getSubTable("Drive"));
         limelightSim = new LimelightSim(fieldLayout, RobotMap.LIMELIGHT_OFFSET_FROM_ROBOT_CENTER, table.getSubTable("Limelight"));
 
-        //Pose3d startingRobotPosition = createRandomRobotPose();
-        Pose3d startingRobotPosition = createFixedRobotPose(8, new Transform3d(2, 0, 0, new Rotation3d(0, 0, Math.PI)));
+        Pose3d startingRobotPosition = createRandomRobotPose();
         odometry.resetPose(startingRobotPosition.toPose2d());
 
         robotPoseEntry = table.getEntry("RobotPose");
