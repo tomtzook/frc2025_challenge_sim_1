@@ -56,6 +56,35 @@ SimSystems.registerDrive(frontLeft, backLeft, frontRight, backRight, pigeon);
 ```
 This will register your system with the simulation and allow it to function. Note that all device configurations must be done beforehand.
 
+#### Odometery
+
+You may wish to use odometery to track the robots movements on the field. Since this is a tank drive, you can use 
+`DifferentialDriveOdometery`. You will need to update it with the drive encoders and pigeon periodically. The following is a baic example
+
+```java
+private final DifferentialDriveOdometery odometery;
+
+public DriveSystem() {
+    ..........
+    // initialize odometery at the zero position (start)
+    odometery = new DifferentialDriveOdometery(Rotation2d.fromDegrees(getHeadingDegrees()), getLeftPositionMeters(), getRightPositionMeters(), Pose2d.kZero);
+    .............
+}
+
+@Override
+public void periodic() {
+    .....
+    // update the odometery with changes
+    odometery.update(Rotation2d.fromDegrees(getHeadingDegrees()), getLeftPositionMeters(), getRightPositionMeters());
+    Pose2d robotPose = odometery.getPoseMeters();
+    ......
+}
+```
+
+You can also display the robot pose on a `Field2d` widget.
+
+Note that because the robot is dropped at an unknown location at the start, the odometery will not provide the corret robot position, but it will track changes in its position. Once the real position is found, you may update the odometery to that position using `odometery.resetPosition(Rotation2d.fromDegrees(getHeadingDegrees()), getLeftPositionMeters(), getRightPositionMeters(), actualPose);`
+
 ### Limelight
 
 A limelight camera is placed on the robot, at `(0.1, 0, 0.8)` relative to the robot center, oriented to look forward.
